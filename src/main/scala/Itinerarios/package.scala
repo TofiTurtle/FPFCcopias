@@ -12,7 +12,8 @@ package object Itinerarios {
     def buscar(Org: String, Dst: String, visitados: Set[String], actual: Itinerario): List[Itinerario] = {
       if (Org == Dst) List(actual)
       else
-        adj.getOrElse(Org, Nil)
+        adj.find(_._1 == Org).fold(Nil: List[Vuelo])(_._2)
+        //adj.getOrElse(Org, Nil)
           .filter(v => !visitados.contains(v.Dst))
           .flatMap { v =>
             val nuevosVisitados = visitados + v.Org

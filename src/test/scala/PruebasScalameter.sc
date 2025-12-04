@@ -131,9 +131,40 @@ println(s"Tiempo Paralelo: $timeA_Par")
 println(s"Aceleración: ${timeA_Sec.value / timeA_Par.value}")
 // ================================================================
 // ================================================================
+println("=" * 70)
+println("SECCIÓN A - COMPLETA CON BÚSQUEDAS REALES (75 vuelos)")
+println("=" * 70)
+
+val vuelosA_Completo = vuelosA1 ++ vuelosA2 ++ vuelosA3 ++ vuelosA4 ++ vuelosA5
+println(s"Total de vuelos: ${vuelosA_Completo.size}")
+
+val paresParaBuscar = List(
+  ("ATL", "LAX"),
+  ("JFK", "SFO"),
+  ("ORD", "MIA")
+)
+
+println("\n--- SECUENCIAL ---")
+val timeA_Sec = standardConfig measure {
+  val its = itinerarios(vuelosA_Completo, aeropuertos)
+  paresParaBuscar.map { case (org, dst) => its(org, dst) }
+}
+
+println("\n--- PARALELO ---")
+val timeA_Par = standardConfig measure {
+  val its = itinerariosPar(vuelosA_Completo, aeropuertos)
+  paresParaBuscar.map { case (org, dst) => its(org, dst) }
+}
+
+println(s"\nTiempo Secuencial: $timeA_Sec")
+println(s"Tiempo Paralelo: $timeA_Par")
+println(s"Aceleración: ${timeA_Sec.value / timeA_Par.value}")
+
+
+
+
+
 // ================================================================
-
-
 
 
 
@@ -251,11 +282,11 @@ println(s"Aceleración: ${timeB_Sec.value / timeB_Par.value}")
 
 
 
-
+/*
 // ============================================
 // SECCIÓN C: PAQUETES GRANDES (100 VUELOS)
 // ============================================
-/*
+
 println("\n" + "=" * 70)
 println("SECCIÓN C - PAQUETES GRANDES (100 vuelos)")
 println("=" * 70)
@@ -348,20 +379,69 @@ val vuelosC_Completo = vuelosC1 ++ vuelosC2 ++ vuelosC3 ++ vuelosC4 ++ vuelosC5
 println(s"\nTotal de vuelos en Sección C: ${vuelosC_Completo.size}")
 
 val timeC_Sec = standardConfig measure {
-  itinerarios(vuelosC_Completo, aeropuertosUSA)
+  itinerarios(vuelosC_Completo, aeropuertos)
 }
 val timeC_Par = standardConfig measure {
-  itinerariosPar(vuelosC_Completo, aeropuertosUSA)
+  itinerariosPar(vuelosC_Completo, aeropuertos)
+}
+
+println(s"\nTiempo Secuencial: $timeC_Sec")
+println(s"Tiempo Paralelo: $timeC_Par")
+println(s"Aceleración: ${timeC_Sec.value / timeC_Par.value}")
+*/
+/*
+//extra extra tripiii
+println("\n" + "=" * 70)
+println("SECCIÓN C - CON BÚSQUEDAS REALES")
+println("=" * 70)
+
+val vuelosC_Completo = vuelosC1 ++ vuelosC2 ++ vuelosC3 ++ vuelosC4 ++ vuelosC5
+println(s"Total de vuelos: ${vuelosC_Completo.size}")
+
+// Pares de aeropuertos para buscar
+val paresParaBuscar = List(
+  ("ATL", "LAX"),
+  ("JFK", "SFO"),
+  ("ORD", "MIA"),
+  ("DFW", "SEA"),
+  ("PHX", "BOS")
+)
+
+println("\n--- SECUENCIAL ---")
+val timeC_Sec = standardConfig measure {
+  val its = itinerarios(vuelosC_Completo, aeropuertos)
+  // Ejecutar búsquedas reales
+  paresParaBuscar.map { case (org, dst) =>
+    its(org, dst)
+  }
+}
+
+println("\n--- PARALELO ---")
+val timeC_Par = standardConfig measure {
+  val its = itinerariosPar(vuelosC_Completo, aeropuertos)
+  // Ejecutar búsquedas reales
+  paresParaBuscar.map { case (org, dst) =>
+    its(org, dst)
+  }
 }
 
 println(s"\nTiempo Secuencial: $timeC_Sec")
 println(s"Tiempo Paralelo: $timeC_Par")
 println(s"Aceleración: ${timeC_Sec.value / timeC_Par.value}")
 
+// Verificar resultados
+val itsC_Sec = itinerarios(vuelosC_Completo, aeropuertos)
+val itsC_Par = itinerariosPar(vuelosC_Completo, aeropuertos)
+
+println("\n--- RESULTADOS ---")
+paresParaBuscar.foreach { case (org, dst) =>
+  val secResults = itsC_Sec(org, dst)
+  val parResults = itsC_Par(org, dst)
+  println(s"$org → $dst: Sec=${secResults.size}, Par=${parResults.size}")
+}
+
+
 */
-
-
-
 
 
 
@@ -369,9 +449,9 @@ println(s"Aceleración: ${timeC_Sec.value / timeC_Par.value}")
 // ============================================
 // SECCIÓN D: PAQUETES MUY GRANDES (500 VUELOS)
 // ============================================
-
-// FASE 1: Probar solo D1
 /*
+// FASE 1: Probar solo D1
+
 println("\n" + "=" * 70)
 println("SECCIÓN D - FASE 1: Solo D1")
 println("=" * 70)
@@ -421,8 +501,8 @@ val aceleracionesD = List(
   timeD2Sec.value / timeD2Par.value
 )
 println(s"\nAceleración promedio (D1-D2): ${aceleracionesD.sum / aceleracionesD.size}")
-*/
 
+*/
 // FASE 3: Probar D1, D2 y D3
 /*
 println("\n" + "=" * 70)
