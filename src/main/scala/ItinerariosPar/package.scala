@@ -16,25 +16,19 @@ package object ItinerariosPar {
         val siguiente = adj.getOrElse(Org, Nil).filter(v => !visitados.contains(v.Dst))
 
         siguiente match {
-
-          // Caso base 1: no hay vuelos
           case Nil =>
             Nil
 
-          // Caso base 2: un solo vuelo — NO paralelizamos
           case v :: Nil =>
             val nuevosVisitados = visitados + v.Org
             buscar(v.Dst, Dst, nuevosVisitados, actual :+ v)
 
-          // Caso general: 2+ vuelos — paralelizamos con divide & conquer
           case v :: tail =>
             val nuevosVisitadosA = visitados + v.Org
 
             val (resA, resB) = parallel(
-              // Task A: explorar la rama del primer vuelo
               buscar(v.Dst, Dst, nuevosVisitadosA, actual :+ v),
 
-              // Task B: explorar recursivamente todas las demás ramas
               tail.flatMap { vueloRest =>
                 val nuevosVisitadosB = visitados + vueloRest.Org
                 buscar(vueloRest.Dst, Dst, nuevosVisitadosB, actual :+ vueloRest)
@@ -64,7 +58,6 @@ package object ItinerariosPar {
 
     val UMBRAL = 50
 
-    // Construimos la lista de tuplas usando for/yield
     def tiemposPar(itins: List[Itinerario]): List[(Itinerario, Int)] = {
       if (itins.length <= UMBRAL) {
         for (it <- itins) yield (it, tiempoTotal(it))
@@ -115,24 +108,17 @@ package object ItinerariosPar {
       val todosItinerarios = itinerariosPar(vuelos, aeropuertos)(cod1, cod2)
 
       if (todosItinerarios.length >= umbral) {
-        // TASK PARALLELISM: Dividir en tareas independientes
         val mitad = todosItinerarios.length / 2
         val (parte1, parte2) = todosItinerarios.splitAt(mitad)
 
-        // Crear dos tareas que se ejecutan en paralelo
         val (evaluados1, evaluados2) = parallel(
-          parte1.map(it => (it, contarEscalas(it))),  // Tarea 1
-          parte2.map(it => (it, contarEscalas(it)))   // Tarea 2
+          parte1.map(it => (it, contarEscalas(it))),
+          parte2.map(it => (it, contarEscalas(it)))
         )
-
-        // Combinar resultados
         val evaluados = evaluados1 ++ evaluados2
-
         evaluados.sortBy(_._2).take(3).map(_._1)
 
       } else {
-        // Secuencial
-        //todosItinerarios.map(it => (it, contarEscalas(it))).sortBy(._2).take(3).map(._1)
         val itinerariosOrdenados = todosItinerarios.sortBy(it => contarEscalas(it))
         itinerariosOrdenados.take(3)
       }
@@ -211,19 +197,22 @@ package object ItinerariosPar {
     val aeromap = aeropuertos.map(a => (a.Cod, a)).toMap
     val itsPar = itinerariosPar(vuelos, aeropuertos)
 
-    def llegadaUTC(v: Vuelo): Int =
-      v.HL*60 + v.ML - aeromap(v.Dst).GMT
+    def llegadaIt(it: Itinerario): Int = {
+      val last = it.last
+      val dst = aeromap(last.Dst)
+      last.HL*60 + last.ML - dst.GMT
+    }
 
-    def salidaUTC(v: Vuelo): Int =
-      v.HS*60 + v.MS - aeromap(v.Org).GMT
-
-    def llegadaIt(it: Itinerario): Int = llegadaUTC(it.last)
-    def salidaIt(it: Itinerario): Int = salidaUTC(it.head)
+    def salidaIt(it: Itinerario): Int = {
+      val first = it.head
+      val org = aeromap(first.Org)
+      first.HS*60 + first.MS - org.GMT
+    }
 
     (c1, c2, h, m) => {
       val citaUTC = h*60 + m - aeromap(c2).GMT
 
-      val its = itsPar(c1, c2).par       // paralelismo en datos
+      val its = itsPar(c1, c2).par
 
       val posibles = its.filter(it => llegadaIt(it) <= citaUTC)
 
